@@ -104,6 +104,13 @@ class Handler extends Controller
         // Create the image file
         $cropPath = $this->render($requestPath);
 
+        if (!$cropPath) {
+            throw new Exception(
+                'Croppa could not create the crop path '.
+                'because your $requestPath is invalid.'
+            );
+        }
+
         if ($this->storage->cropsAreRemote()) {
             $cropsDisk = $this->getCropsDisk();
             return $cropsDisk->url($cropPath);
