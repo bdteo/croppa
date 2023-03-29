@@ -36,8 +36,8 @@ class Helpers
     /**
      * Delete source image and all of it's crops.
      *
-     * @see Bkwld\Croppa\Storage::deleteSrc()
-     * @see Bkwld\Croppa\Storage::deleteCrops()
+     * @see Storage::deleteSrc()
+     * @see Storage::deleteCrops()
      */
     public function delete(string $url)
     {
@@ -49,7 +49,7 @@ class Helpers
     /**
      * Delete just the crops, leave the source image.
      *
-     * @see Bkwld\Croppa\Storage::deleteCrops()
+     * @see Storage::deleteCrops()
      */
     public function reset(string $url)
     {
@@ -60,7 +60,7 @@ class Helpers
     /**
      * Create an image tag rather than just the URL.  Accepts the same params as url().
      *
-     * @see Bkwld\Croppa\URL::generate()
+     * @see URL::generate()
      */
     public function tag(string $url, ?int $width = null, ?int $height = null, ?array $options = null): string
     {
@@ -70,7 +70,7 @@ class Helpers
     /**
      * Pass through URL requests to URL->generate().
      *
-     * @see Bkwld\Croppa\URL::generate()
+     * @see URL::generate()
      */
     public function url(string $url, ?int $width = null, ?int $height = null, ?array $options = null): string
     {
@@ -80,10 +80,22 @@ class Helpers
     /**
      * Render image.
      *
-     * @see Bkwld\Croppa\URL::generate()
+     * @throws Exception
+     * @see URL::generate()
      */
     public function render(string $url): string
     {
         return $this->handler->render($url);
+    }
+
+    /**
+     * @param string $url
+     * @return string
+     * @throws Exception
+     * @noinspection PhpUnused
+     */
+    public function getActualPath(string $url): string
+    {
+        return $this->handler->getActualPath($url);
     }
 }

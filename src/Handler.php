@@ -70,12 +70,11 @@ class Handler extends Controller
         }
 
         // Create the image file
-        $cropPath = $this->renderer->render($requestPath);
+        $cropPath = $this->render($requestPath);
 
         // Redirect to remote crops ...
         if ($this->storage->cropsAreRemote()) {
-            $cropsDisk = app('filesystem')
-                ->disk($this->config['crops_disk']);
+            $cropsDisk = $this->getCropsDisk();
             return redirect(
                 $cropsDisk->url($cropPath),
                 301
@@ -87,6 +86,40 @@ class Handler extends Controller
         return new BinaryFileResponse($absolutePath, 200, [
             'Content-Type' => $this->getContentType($absolutePath),
         ]);
+    }
+
+    public function getCropsDisk()
+    {
+        return app('filesystem')
+            ->disk($this->config['crops_disk']);
+    }
+
+    /**
+     * @param $requestPath
+     * @return string|null
+     * @throws Exception
+     */
+    public function getActualPath($requestPath): ?string
+    {
+        // Create the image file
+        $cropPath = $this->render($requestPath);
+
+        if ($this->storage->cropsAreRemote()) {
+            $cropsDisk = $this->getCropsDisk();
+            return $cropsDisk->url($cropPath);
+        } else {
+            return $cropPath;
+        }
+    }
+
+    /**
+     * @param $requestPath
+     * @return string|null
+     * @throws Exception
+     */
+    public function render($requestPath): ?string
+    {
+        return $this->renderer->render($requestPath);
     }
 
     /**
