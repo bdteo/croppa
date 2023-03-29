@@ -94,8 +94,8 @@ class Helpers
      * @throws Exception
      * @noinspection PhpUnused
      */
-    public function getActualPath(string $url): string
+    public function renderToActualPath(string $url): string
     {
-        return $this->handler->getActualPath($url);
+        return $this->handler->renderToActualPath($url);
     }
 }

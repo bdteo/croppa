@@ -135,4 +135,14 @@ return [
         'orange' => Bkwld\Croppa\Filters\OrangeWarhol::class,
         'turquoise' => Bkwld\Croppa\Filters\TurquoiseWarhol::class,
     ],
+
+    /**
+     * The following options control the caching feature of Croppa.
+     * If cache is enabled the Croppa::url() will be able to return
+     * cached urls instead of generating new ones.
+     */
+    'cache' => [
+        'enabled' => true,
+        'ttl' => 60 * 60 * 24 * 365, // 365 days
+    ],
 ];

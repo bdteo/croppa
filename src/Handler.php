@@ -7,6 +7,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -71,21 +73,45 @@ class Handler extends Controller
 
         // Create the image file
         $cropPath = $this->render($requestPath);
+        $requestPathWithFrontSlash = Str::start($requestPath, '/');
 
         // Redirect to remote crops ...
         if ($this->storage->cropsAreRemote()) {
             $cropsDisk = $this->getCropsDisk();
-            return redirect(
-                $cropsDisk->url($cropPath),
-                301
-            );
+            $remotePath = $cropsDisk->url($cropPath);
+
+            $this->cache($requestPathWithFrontSlash, $remotePath);
+
+            return redirect($remotePath,301);
             // ... or echo the image data to the browser
         }
+
+        $this->cache($requestPathWithFrontSlash, $cropPath);
         $absolutePath = $this->storage->getLocalCropPath($cropPath);
 
         return new BinaryFileResponse($absolutePath, 200, [
             'Content-Type' => $this->getContentType($absolutePath),
         ]);
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @return bool|null
+     */
+    protected function cache($key, $value): ?bool
+    {
+        $key = "croppa:$key";
+        $config = $this->config;
+        $cacheEnabled = data_get($config, 'cache.enabled', false);
+
+        if (!$cacheEnabled) {
+            return null;
+        }
+
+        // 30 days
+        $cacheTtl = data_get($config, 'cache.ttl', 60 * 60 * 24 * 30);
+        return Cache::put($key, $value, $cacheTtl);
     }
 
     public function getCropsDisk()
@@ -99,7 +125,7 @@ class Handler extends Controller
      * @return string|null
      * @throws Exception
      */
-    public function getActualPath($requestPath): ?string
+    public function renderToActualPath($requestPath): ?string
     {
         // Create the image file
         $cropPath = $this->render($requestPath);
