@@ -116,6 +116,7 @@ return [
      * - 'png': force the format to png
      * - 'gif': force the format to gif
      * - 'webp': force the format to webp
+     * - 'heic': force the format to heic
      *
      * @var null|string
      */

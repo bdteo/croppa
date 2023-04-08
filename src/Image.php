@@ -30,7 +30,7 @@ class Image
     private $upsize;
 
     /**
-     * Image format (jpg, gif, png, webp).
+     * Image format (jpg, gif, png, webp, heic).
      *
      * @var string
      */
@@ -265,6 +265,7 @@ class Image
             'gif' => 'gif',
             'png' => 'png',
             'webp' => 'webp',
+            'heic' => 'heic',
             default => 'jpg',
         };
     }

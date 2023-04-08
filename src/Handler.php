@@ -164,6 +164,7 @@ class Handler extends Controller
             'gif' => 'image/gif',
             'png' => 'image/png',
             'webp' => 'image/webp',
+            'heic' => 'image/heic',
             default => 'image/jpeg',
         };
     }

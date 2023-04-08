@@ -10,10 +10,10 @@ class URL
     /**
      * The pattern used to identify a request path as a Croppa-style URL
      * https://github.com/BKWLD/croppa/wiki/Croppa-regex-pattern.
-     *
+     * The ?i: expression forms a non-capturing group that makes the regex case-insensitive.
      * @return string
      */
-    public const PATTERN = '(.+)-([0-9_]+)x([0-9_]+)(-[0-9a-zA-Z(),\-._]+)*\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$';
+    public const PATTERN = '(?i:(.+)-([0-9_]+)x([0-9_]+)(-[0-9a-zA-Z(),\-._]+)*\.(jpg|jpeg|png|gif|webp|heic))$';
 
     /**
      * Croppa general configuration.
