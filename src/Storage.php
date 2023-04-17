@@ -108,7 +108,9 @@ final class Storage
      */
     public function cropsAreRemote(): bool
     {
-        return !$this->getCropsDisk()->getAdapter() instanceof LocalFilesystemAdapter;
+        return !$this->getCropsDisk()->getAdapter()
+            instanceof
+            LocalFilesystemAdapter;
     }
 
     /**
@@ -141,11 +143,24 @@ final class Storage
      *
      * @throws Exception
      */
-    public function writeCrop(string $path, string $contents): void
+    public function writeCrop(
+        string $path,
+        string $contents,
+        ?array $options = []
+    ): void
     {
         try {
-            $this->getCropsDisk()->write($path, $contents);
-        } catch (FilesystemException $e) {
+            $this->getCropsDisk()->write(
+                $path,
+                $contents,
+                $options ?? [
+                'ACL' => 'public-read',
+                // Cache for 365 days
+                'CacheControl' => 'public, max-age=31536000, immutable',
+            ]
+            );
+        }
+        catch (FilesystemException $e) {
             // don't throw exception anymore as mentioned in PR #164
         }
     }
@@ -185,7 +200,10 @@ final class Storage
     /**
      * Delete ALL crops.
      */
-    public function deleteAllCrops(?string $filter = null, bool $dry_run = false): array
+    public function deleteAllCrops(
+        ?string $filter = null,
+        bool $dry_run = false
+    ): array
     {
         $crops = $this->listAllCrops($filter);
         $disk = $this->getCropsDisk();
@@ -224,19 +242,27 @@ final class Storage
         } // Flysystem doesn't like "." for the dir
 
         // Filter the files in the dir to just crops of the image path
-        return $this->justPaths(array_filter(
-            $this->getCropsDisk()->listContents($dir)->toArray(),
-            function ($file) use ($filename) {
-                // Don't return the source image, we're JUST getting crops
-                return pathinfo($file['path'], PATHINFO_BASENAME) !== $filename
-            // Test that the crop begins with the src's path, that the crop is FOR
-            // the src
-            && mb_strpos(pathinfo($file['path'], PATHINFO_FILENAME), pathinfo($filename, PATHINFO_FILENAME)) === 0
+        return $this->justPaths(
+            array_filter(
+                $this->getCropsDisk()->listContents($dir)->toArray(),
+                function ($file) use ($filename) {
+                    // Don't return the source image, we're JUST getting crops
+                    return pathinfo($file['path'], PATHINFO_BASENAME) !==
+                        $filename
+                        // Test that the crop begins with the src's path, that the crop is FOR
+                        // the src
+                        &&
+                        mb_strpos(
+                            pathinfo($file['path'], PATHINFO_FILENAME),
+                            pathinfo($filename, PATHINFO_FILENAME)
+                        ) === 0
 
-            // Make sure that the crop matches that Croppa file regex
-            && preg_match('#'.URL::PATTERN.'#', $file['path']);
-            }
-        ));
+                        // Make sure that the crop matches that Croppa file regex
+                        &&
+                        preg_match('#' . URL::PATTERN . '#', $file['path']);
+                }
+            )
+        );
     }
 
     /**
@@ -245,25 +271,33 @@ final class Storage
      */
     public function listAllCrops(?string $filter = null): array
     {
-        return $this->justPaths(array_filter(
-            $this->getCropsDisk()->listContents('', true)->toArray(),
-            function ($file) use ($filter) {
-                // If there was a filter, force it to match
-                if ($filter && !preg_match("#{$filter}#i", $file['path'])) {
-                    return;
-                }
+        return $this->justPaths(
+            array_filter(
+                $this->getCropsDisk()->listContents('', true)->toArray(),
+                function ($file) use ($filter) {
+                    // If there was a filter, force it to match
+                    if ($filter && !preg_match("#{$filter}#i", $file['path'])) {
+                        return;
+                    }
 
-                // Check that the file matches the pattern and get at the parts to make to
-                // make the path to the src
-                if (!preg_match('#'.URL::PATTERN.'#', $file['path'], $matches)) {
-                    return false;
-                }
-                $src = $matches[1].'.'.$matches[5];
+                    // Check that the file matches the pattern and get at the parts to make to
+                    // make the path to the src
+                    if (
+                        !preg_match(
+                            '#' . URL::PATTERN . '#',
+                            $file['path'],
+                            $matches
+                        )
+                    ) {
+                        return false;
+                    }
+                    $src = $matches[1] . '.' . $matches[5];
 
-                // Test that the src file exists
-                return $this->getSrcDisk()->fileExists($src);
-            }
-        ));
+                    // Test that the src file exists
+                    return $this->getSrcDisk()->fileExists($src);
+                }
+            )
+        );
     }
 
     /**
